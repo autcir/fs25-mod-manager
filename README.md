@@ -28,7 +28,7 @@ only on your PC (`127.0.0.1`).
 
 ### Safety: what it never does
 
-Written after a real loss of 96 mods caused by an older version, and covered by `test_sicurezza.py` (52 tests, all
+Written after a real loss of 96 mods caused by an older version, and covered by `test_sicurezza.py` (56 tests, all
 in temporary folders).
 
 - It **never deletes real files**. In the game mod folder it only adds or removes symbolic links. Real `.zip`
@@ -136,7 +136,7 @@ and does not contain or distribute any mod.
 ### Sicurezza: cosa non fa mai
 
 Regole scritte dopo una perdita vera di 96 mod causata da una versione vecchia, e provate da `test_sicurezza.py`
-(52 test, tutti in cartelle temporanee).
+(56 test, tutti in cartelle temporanee).
 
 - **Non cancella mai file veri.** Nella cartella mod del gioco aggiunge o toglie solo link simbolici. I `.zip` veri
   non scelti restano lì e la pagina te li elenca.

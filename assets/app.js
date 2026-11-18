@@ -1669,7 +1669,11 @@
   // --------------------------------------------------------------- CSV
 
   function downloadCsv(header, rows, filename) {
-    const escapeCell = value => '"' + String(value ?? '').replace(/"/g, '""') + '"';
+    const escapeCell = value => {
+      let s = String(value ?? '');
+      if (/^[=+\-@\t\r\n]/.test(s)) s = "'" + s;  // niente formule eseguite da Excel/LibreOffice
+      return '"' + s.replace(/"/g, '""') + '"';
+    };
     const csv = '\uFEFF' + [header, ...rows].map(row => row.map(escapeCell).join(';')).join('\r\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);

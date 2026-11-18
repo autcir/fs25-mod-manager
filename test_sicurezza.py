@@ -622,5 +622,67 @@ class TestConfigurazione(Base):
         self.assertTrue(server.stato_backup()["montato"])
 
 
+class TestFileDiTerzi(unittest.TestCase):
+    """Icone degli zip (file di terzi) e export CSV: nessun formato indovinato, nessuna formula."""
+
+    def test_imagemagick_formato_esplicito(self):
+        import scan_mods
+        cmd = scan_mods.magick_cmd("magick", Path("/x/a.dds"), ".dds", Path("/x/o.png"))
+        self.assertEqual(cmd[1], "dds:/x/a.dds")
+        self.assertEqual(cmd[-1], "png:/x/o.png")
+        for vietato in (".svg", ".mvg", ".txt", ".img", ""):
+            with self.assertRaises(KeyError):
+                scan_mods.magick_cmd("magick", Path("/x/a" + vietato), vietato, Path("/x/o.png"))
+        self.assertTrue((scan_mods.MAGICK_POLICY_DIR / "policy.xml").is_file())
+        self.assertEqual(scan_mods.magick_env()["MAGICK_CONFIGURE_PATH"], str(scan_mods.MAGICK_POLICY_DIR))
+
+    def test_icona_svg_rifiutata(self):
+        import scan_mods
+        tmp = Path(tempfile.mkdtemp(prefix="mm-icone-"))
+        vecchia = scan_mods.ICON_DIR
+        try:
+            scan_mods.ICON_DIR = tmp / "icons"
+            z = tmp / "mod.zip"
+            with zipfile.ZipFile(z, "w") as zf:
+                zf.writestr("icon_x.svg", "<svg/>")
+            with zipfile.ZipFile(z) as zf:
+                self.assertIsNone(scan_mods.extract_icon(zf, {"sha256": "x"}, "icon_x.svg", "id1", {}, False))
+            self.assertFalse((tmp / "icons" / "id1.png").exists())
+        finally:
+            scan_mods.ICON_DIR = vecchia
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    @unittest.skipUnless(shutil.which("magick"), "ImageMagick non installato")
+    def test_policy_blocca_mvg_e_text(self):
+        import subprocess
+        import scan_mods
+        tmp = Path(tempfile.mkdtemp(prefix="mm-policy-"))
+        try:
+            (tmp / "x.mvg").write_text("push graphic-context\nviewbox 0 0 10 10\npop graphic-context\n")
+            (tmp / "t.txt").write_text("ciao")
+            for src in (f"mvg:{tmp / 'x.mvg'}", f"text:{tmp / 't.txt'}", f"@{tmp / 't.txt'}"):
+                r = subprocess.run(["magick", src, f"png:{tmp / 'o.png'}"], env=scan_mods.magick_env(),
+                                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30)
+                self.assertNotEqual(r.returncode, 0, src)
+                self.assertFalse((tmp / "o.png").exists(), src)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    @unittest.skipUnless(shutil.which("node"), "node non installato")
+    def test_csv_niente_formule(self):
+        import re
+        import subprocess
+        src = (Path(server.__file__).parent / "assets" / "app.js").read_text(encoding="utf-8")
+        m = re.search(r"const escapeCell = value => \{.*?\n    \};", src, re.S)
+        self.assertIsNotNone(m, "escapeCell non trovata in app.js")
+        js = m.group(0) + """
+const casi = ['=1+1', '+1', '-1', '@SUM(A1)', '\\tx', '\\nx', 'ok', 'a"b', 12];
+console.log(JSON.stringify(casi.map(escapeCell)));"""
+        out = json.loads(subprocess.run(["node", "-e", js], capture_output=True, text=True, timeout=30).stdout)
+        self.assertEqual(out[:4], ['"\'=1+1"', '"\'+1"', '"\'-1"', '"\'@SUM(A1)"'])
+        self.assertTrue(out[4].startswith('"\'\t') and out[5].startswith('"\'\n'))
+        self.assertEqual(out[6:], ['"ok"', '"a""b"', '"12"'])
+
+
 if __name__ == "__main__":
     unittest.main()

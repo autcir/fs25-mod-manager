@@ -628,6 +628,28 @@ def parse_store_items(zf: zipfile.ZipFile, root, text: str, md_dir: str, l10n: d
     return items
 
 
+# Icone dentro gli zip delle mod = file di terzi. ImageMagick riceve sempre il formato esplicito
+# (mai lasciato indovinare dal contenuto) e gira con la policy restrittiva di imagemagick/policy.xml.
+ICON_FORMATS = {".png": "png", ".dds": "dds", ".jpg": "jpeg", ".jpeg": "jpeg"}
+MAGICK_POLICY_DIR = BASE_DIR / "imagemagick"
+
+
+def magick_env() -> dict:
+    env = dict(os.environ)
+    env["MAGICK_CONFIGURE_PATH"] = str(MAGICK_POLICY_DIR)
+    return env
+
+
+def magick_cmd(exe: str, src: Path, suffix: str, out: Path, extent: bool = True) -> list[str]:
+    fmt = ICON_FORMATS[suffix]  # KeyError se il formato non è ammesso
+    cmd = [exe, f"{fmt}:{src}"]
+    if extent:
+        cmd += ["-background", "none", "-gravity", "center", "-thumbnail", "220x220", "-extent", "220x220"]
+    else:
+        cmd += ["-thumbnail", "220x220"]
+    return cmd + [f"png:{out}"]
+
+
 def extract_icon(zf: zipfile.ZipFile, entry: dict, icon_name: str, icon_id: str,
                  icon_cache: dict[str, str], no_icons: bool) -> str | None:
     if no_icons:
@@ -664,19 +686,21 @@ def extract_icon(zf: zipfile.ZipFile, entry: dict, icon_name: str, icon_id: str,
     out_path = ICON_DIR / f"{icon_id}.png"
     tmp_path = None
     try:
-        suffix = Path(candidate).suffix.lower() or ".img"
+        suffix = Path(candidate).suffix.lower()
+        if suffix not in ICON_FORMATS:  # file di terzi: solo formati immagine noti
+            return None
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix, dir=str(ICON_DIR)) as tmp:
             tmp.write(blob)
             tmp_path = Path(tmp.name)
         if shutil.which("magick") or shutil.which("convert"):
             exe = "magick" if shutil.which("magick") else "convert"
-            cmd = [exe, str(tmp_path), "-background", "none", "-gravity", "center",
-                   "-thumbnail", "220x220", "-extent", "220x220", str(out_path)]
-            proc = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30)
+            env = magick_env()
+            cmd = magick_cmd(exe, tmp_path, suffix, out_path, extent=True)
+            proc = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30, env=env)
             if proc.returncode != 0 or not out_path.exists():
-                # secondo tentativo senza extent (alcune iconne hanno alpha problematica)
-                cmd = [exe, str(tmp_path), "-thumbnail", "220x220", str(out_path)]
-                subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30)
+                # secondo tentativo senza extent (alcune icone hanno alpha problematica)
+                cmd = magick_cmd(exe, tmp_path, suffix, out_path, extent=False)
+                subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30, env=env)
         elif suffix in (".png", ".jpg", ".jpeg"):
             shutil.copyfile(tmp_path, out_path)
         if out_path.exists() and out_path.stat().st_size > 0:
