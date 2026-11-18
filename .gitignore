@@ -1,0 +1,19 @@
+# Data generated on your PC: personal mod lists, caches, logs
+data/
+icons/
+*.csv
+*.log
+mods-bck/
+mods/
+BACKUP_MODS/
+scraper/
+*.db
+
+# Backups and leftovers
+*.bak*
+*.vecchio-*
+*.parte
+__pycache__/
+*.pyc
+.env
+config.json
