@@ -1,0 +1,36 @@
+name: CI Suite
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    name: Safety Tests & Integrity Validation
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Verify Code Syntax
+        run: |
+          python3 -m py_compile server.py scan_mods.py backup_mods.py
+
+      - name: Run 52 Automated Security Tests
+        run: |
+          TMPDIR=/tmp python3 -m unittest test_sicurezza -v
+
+      - name: Validate Docker Compose Configuration
+        run: |
+          docker compose config

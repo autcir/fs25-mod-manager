@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 240" width="840" height="240" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#070c09"/>
+      <stop offset="50%" stop-color="#0c1610"/>
+      <stop offset="100%" stop-color="#080e0a"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4ade80"/>
+      <stop offset="100%" stop-color="#22c55e"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fde047"/>
+      <stop offset="100%" stop-color="#eab308"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="840" height="240" rx="16" fill="url(#bgGrad)"/>
+  <rect x="1" y="1" width="838" height="238" rx="15" stroke="#1c2c20" stroke-width="1.5"/>
+
+  <!-- Subtle Grid Accent -->
+  <g stroke="#142117" stroke-width="1" opacity="0.6">
+    <line x1="40" y1="0" x2="40" y2="240"/>
+    <line x1="800" y1="0" x2="800" y2="240"/>
+    <line x1="0" y1="200" x2="840" y2="200"/>
+  </g>
+
+  <!-- Logo Mark (Left) -->
+  <g transform="translate(60, 48)">
+    <rect width="84" height="84" rx="20" fill="#101c13" stroke="#253a2a" stroke-width="2"/>
+    <path d="M42 16 C42 16, 26 23, 26 38 C26 47 33 53 42 53 C51 53 58 47 58 38 C58 23 42 16 42 16 Z" 
+          fill="url(#accentGrad)"/>
+    <path d="M42 20 L42 49" stroke="#101c13" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M42 29 L34 24" stroke="#101c13" stroke-width="3" stroke-linecap="round"/>
+    <path d="M42 36 L50 31" stroke="#101c13" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="59" cy="22" r="4.5" fill="url(#goldGrad)"/>
+    
+    <!-- Mod Deck lines -->
+    <rect x="18" y="59" width="48" height="4.5" rx="2" fill="#1d3022"/>
+    <rect x="18" y="67" width="34" height="4.5" rx="2" fill="#1d3022"/>
+  </g>
+
+  <!-- Typography & Identity (Right) -->
+  <g transform="translate(175, 52)">
+    <!-- Badge -->
+    <rect x="0" y="0" width="168" height="22" rx="11" fill="#16271a" stroke="#2c4732" stroke-width="1"/>
+    <circle cx="10" cy="11" r="3.5" fill="#4ade80"/>
+    <text x="20" y="15" fill="#a6b8a4" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="11" font-weight="600" letter-spacing="0.5">FS25 OPEN PLATFORM</text>
+
+    <!-- Title -->
+    <text x="0" y="58" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="36" font-weight="800" letter-spacing="-0.8">
+      Agro<tspan fill="#4ade80">Deck</tspan> <tspan fill="#60a5fa" font-size="20" font-weight="600" dx="6">FS25</tspan>
+    </text>
+
+    <!-- Tagline -->
+    <text x="0" y="86" fill="#c3d4c1" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="14.5" font-weight="450">
+      Enterprise Mod Manager, Discovery Engine &amp; Non-Destructive Symlink Orchestra
+    </text>
+
+    <!-- Meta Highlights -->
+    <g transform="translate(0, 108)" font-family="JetBrains Mono, ui-monospace, Menlo, monospace" font-size="11.5" fill="#849b82">
+      <text x="0" y="0">✓ 22,645 KingMods Offline Index</text>
+      <text x="240" y="0">✓ 52/52 Safety Gates Passing</text>
+      <text x="470" y="0">✓ Zero File-Loss Architecture</text>
+    </g>
+  </g>
+</svg>

@@ -1,47 +1,98 @@
-# 🌾 FS25 Mod Manager & Discovery Hub
+<p align="center">
+  <img src="assets/banner.svg" alt="AgroDeck FS25 Banner" width="100%">
+</p>
 
-[![Status](https://img.shields.io/badge/status-active-success.svg)]()
-[![Tests](https://img.shields.io/badge/security%20tests-52%2F52%20passing-brightgreen.svg)]()
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)]()
-[![FS25](https://img.shields.io/badge/Farming%20Simulator-25-green.svg)]()
+<p align="center">
+  <strong>Console Operativa Enterprise &amp; Discovery Hub per Farming Simulator 25</strong><br>
+  Architettura non distruttiva a collegamenti simbolici (symlink), catalogo offline di oltre 22.000 mod KingMods e gestione avanzata delle carriere.
+</p>
 
-Un gestionale locale moderno, veloce e sicuro per le mod di **Farming Simulator 25**, con **hub di scoperta collegato a oltre 22.000 mod indicizzate**, console di gestione attiva a due colonne e architettura non distruttiva a collegamenti simbolici (*symlinks*).
+<p align="center">
+  <img src="https://img.shields.io/badge/Release-v1.0.0-emerald?style=flat-square" alt="Release">
+  <img src="https://img.shields.io/badge/Security_Gates-52%2F52_PASS-brightgreen?style=flat-square" alt="Security Tests">
+  <img src="https://img.shields.io/badge/GIANTS_Engine-10_%2F_FS25-22c55e?style=flat-square" alt="FS25">
+  <img src="https://img.shields.io/badge/Python-3.11_|_3.12_|_3.13-blue?style=flat-square" alt="Python">
+  <img src="https://img.shields.io/badge/Docker-Ready-2496ed?style=flat-square" alt="Docker">
+  <img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square" alt="License">
+</p>
+
+---
+
+## 📐 Architettura di Sistema
+
+```mermaid
+graph TD
+    subgraph "GIANTS Software (Farming Simulator 25)"
+        Game[FS25 Engine Loop]
+        ActiveMods["mods/ (Cartella attiva di gioco)"]
+        Saves["savegame1..20/ (Salvataggi Carriera)"]
+        Game --> ActiveMods
+        Game --> Saves
+    end
+
+    subgraph "AgroDeck Core Platform (Porta 8025)"
+        Server[server.py REST & Static Engine]
+        Scanner[scan_mods.py Metadati & ModDesc]
+        KingDB[("scraper/kingmods_fs25.db<br>22.645 Mod Indicizzate")]
+        BackupEngine[backup_mods.py Sync Incrementale]
+        
+        Server --> Scanner
+        Server --> KingDB
+        Server --> BackupEngine
+    end
+
+    subgraph "Filesystem & Archiviazione Sicura"
+        Archive["mods/ o BACKUP_MODS/<br>(Archivio Riserva - Sola Lettura)"]
+        Symlinks{"Symlink Safe Dispatcher<br>(Mai cancella file veri)"}
+        ExternalBackup[("Disco Esterno Backup<br>Copie Storiche .vecchio-*")]
+
+        Archive --> Symlinks
+        Symlinks -.->|Attiva/Disattiva Link| ActiveMods
+        BackupEngine --> ExternalBackup
+    end
+
+    subgraph "Interfaccia Dashboard (Impeccable Dark UI)"
+        UI_Manage["Console a 2 Colonne<br>(Nel Gioco ⇄ Archivio)"]
+        UI_Rec["Hub Scoperta KingMods<br>(Filtri 102 Categorie & Cross-Check)"]
+        UI_Architect["Career & Game Architect<br>(Nuove Partite & Difficoltà)"]
+        UI_Drawer["Native Accessible Drawer<br>(Scheda Mod & Warning)"]
+    end
+
+    Server <--> UI_Manage
+    Server <--> UI_Rec
+    Server <--> UI_Architect
+    Server <--> UI_Drawer
+```
 
 ---
 
 ## ⚡ Caratteristiche Principali
 
 ### 1. 🎛️ Console di Gestione a Due Colonne
-* **Colonna Sinistra (Nel Gioco)**: visualizza esattamente le mod attive nel tuo set corrente di FS25.
-* **Colonna Destra (Archivio / Riserva)**: catalogo completo delle tue mod salvate e collezionate nel tempo.
-* **Azioni Rapide a 1-Click**: sposta le mod tra gioco e archivio con un click (`+ Aggiungi` / `✕ Rimuovi`), senza mai rischiare di cancellare file fisici.
-* **Barra di Sincronizzazione Sticky**: anteprima delle modifiche e applicazione immediata con ripristino automatico dello stato precedente in caso di errore.
+* **Colonna Sinistra (Nel Gioco)**: panoramica esatta delle mod attualmente attive nel gioco.
+* **Colonna Destra (Archivio / Riserva)**: catalogo ordinabile di tutte le mod scaricate o archiviate.
+* **Azioni Rapide a 1-Click**: pulsanti `+ Aggiungi` e `✕ Rimuovi` con aggiornamento in tempo reale e barra di applicazione sticky con salvataggio delle transazioni.
 
-### 2. 🔍 Hub di Ricerca & Scoperta KingMods (22.645 Mod)
-* **Catalogo Locale Indicizzato**: ricerca istantanea (1 ms) tra oltre 22.000 mod FS25 con statistiche reali di download e valutazioni community.
+### 2. 🔍 Hub di Ricerca KingMods (22.645 Mod Indicizzate)
+* **Ricerca Sub-millisecondo (SQLite Locale)**: cerca istantaneamente tra oltre 22.000 mod FS25 per nome, marca, autore o descrizione.
 * **Cross-Check con il tuo Archivio**:
-  * <span style="color:#4ade80;">**🟢 Nel Gioco**</span>: mod già presente e attiva nel set di gioco.
-  * <span style="color:#38bdf8;">**✓ In Archivio**</span>: mod presente nel tuo archivio locale.
-  * <span style="color:#a6b8a4;">**⭐ Nuova**</span>: mod non ancora presente, scaricabile con link diretto alla scheda ufficiale.
+  * `🟢 Nel Gioco`: la mod è già abilitata nella tua sessione corrente.
+  * `✓ In Archivio`: la mod è presente nel tuo archivio locale/backup.
+  * `⭐ Nuova`: mod esterna non ancora presente, con collegamento diretto alla scheda KingMods.
 * **Preset Tematici Rapidi**:
-  * 🇮🇹 *Made in Italy & Mediterraneo*: Fiat, Fiatagri, Laverda, Same, Landini, Antonio Carraro, Alpego e mappe storiche (*Etruria*, *Polesine*).
-  * ⚙️ *Script & Realismo Indispensabili*: Universal Autoload, Courseplay, AutoDrive, TerraFarm, fisica avanzata e suolo.
-  * 🏆 *Top Download di Sempre*: le mod più scaricate dalla community globale.
-  * 🚜 *Trattori Iconici*: compatti, medi e grandi mezzi da lavoro.
-  * 🏭 *Produzioni & Fabbriche*: serre, capannoni, cantine e magazzini automatici.
-  * 🗺️ *Mappe Europee*: scenari collinari e campagne aperte.
-* **102 Categorie FS25 Reali**: filtro dropdown con conteggio in tempo reale per ogni categoria.
+  * 🇮🇹 *Made in Italy & Mediterraneo* (Fiat, Laverda, Same, Landini, Carraro, Alpego, mappe Etruria/Polesine).
+  * ⚙️ *Script & Realismo Indispensabili* (Universal Autoload, Courseplay, AutoDrive, TerraFarm).
+  * 🏆 *Top Download di Sempre* (le mod più celebri e collaudate al mondo).
+  * 🚜 *Trattori Iconici* (compatti, medi e giganti da lavoro).
+  * 🏭 *Produzioni & Fabbriche* (serre, filiere e magazzini).
+  * 🗺️ *Mappe Europee* (scenari collinari e campagne aperte).
+* **Filtro Categorie**: menu con 102 categorie FS25 con conteggi reali.
 
-### 3. 🛡️ Sicurezza Assoluta (Zero Perdita Dati)
-* **52 Test di Integrità Automatizzati** (`make test`).
-* Non cancella mai file ZIP veri: lavora esclusivamente con collegamenti simbolici.
-* Blocco automatico di qualsiasi operazione mentre il gioco FS25 è aperto.
-* Controllo copie esatte, rilevamento conflitti di versione e sanitizzazione nomi file.
-* Backup con versioning incrementale: le mod aggiornate non sovrascrivono quelle vecchie ma creano copie storiche (`.vecchio-<data>`).
-
-### 4. 🚀 Career & Game Architect
-* Crea nuove partite da zero scegliendo mappa, capitale iniziale, debito, difficoltà economica (EASY / NORMAL / HARD) e giorni per mese.
-* Protegge i salvataggi esistenti segnalando gli slot occupati e chiedendo conferma esplicita per evitare sovrascritture accidentali.
+### 3. 🛡️ Sicurezza Assoluta (Zero File-Loss)
+* **52 Test Automatizzati** (`make test`) a protezione di percorsi, directory traversal e salvataggi.
+* Non tocca mai i file `.zip` originali: opera esclusivamente tramite link simbolici.
+* Blocco automatico di qualsiasi operazione mentre Farming Simulator 25 è in esecuzione.
+* Backup con versioning incrementale (`.vecchio-<data>`) per preservare ogni configurazione.
 
 ---
 
@@ -50,55 +101,38 @@ Un gestionale locale moderno, veloce e sicuro per le mod di **Farming Simulator 
 ### Metodo 1: Makefile (Consigliato su Linux)
 
 ```bash
-# Avvia il server locale e apre automaticamente la dashboard
+# Avvia il server e apre la dashboard nel browser
 make run
 ```
 
-Visualizza lo stato e i comandi disponibili:
+Per consultare tutti i comandi:
 ```bash
 make help
 make status
 ```
 
-### Metodo 2: Script Diretto
+### Metodo 2: Docker Compose (Universale su Windows / Linux / macOS)
 
 ```bash
-./apri.sh
-```
-La dashboard si aprirà automaticamente nel tuo browser su `http://127.0.0.1:8025`.
-
-### Metodo 3: Docker (Universale su Windows / Linux / macOS)
-
-Se preferisci eseguire il Mod Manager in un container isolato senza installare dipendenze sul sistema:
-
-```bash
-# Avvia il container in background
+# Avvia in background
 docker compose up -d
 
 # Oppure tramite Makefile
 make docker-run
 ```
 
-Per fermarlo:
-```bash
-docker compose down
-# oppure
-make docker-stop
-```
+La dashboard sarà attiva su `http://127.0.0.1:8025`.
 
 ---
 
-## ⚙️ Configurazione dei Percorsi
+## ⚙️ Configurazione Percorsi
 
-Il Mod Manager rileva automaticamente i percorsi standard di FS25 su Linux (Wine/Proton/Steam) e su Windows.
+Se utilizzi percorsi personalizzati, puoi configurare AgroDeck tramite il file `data/config.json`:
 
-Se utilizzi percorsi personalizzati, puoi configurarli in due modi:
-
-### Opzione A: File `data/config.json`
-Copia il file di esempio e personalizza le directory:
 ```bash
 cp data/config.example.json data/config.json
 ```
+
 ```json
 {
   "active_game_dir": "/percorso/alle/tue/mod",
@@ -110,52 +144,28 @@ cp data/config.example.json data/config.json
 }
 ```
 
-### Opzione B: Variabili d'Ambiente
+In alternativa, puoi esportare le variabili d'ambiente:
 ```bash
 export FS25_MODS_DIR="/percorso/alle/tue/mod"
 export FS25_ARCHIVE_DIR="/percorso/all/archivio"
-export FS25_KINGMODS_DB="/percorso/a/kingmods_fs25.db"
 make run
 ```
 
 ---
 
-## 🧪 Test di Sicurezza & Qualità
-
-Per verificare l'integrità del sistema e accertarsi che nessuna operazione tocchi file non autorizzati:
+## 🧪 Validazione & Test di Sicurezza
 
 ```bash
 make test
 ```
-Esegue i 52 test unitari che convalidano:
-* Protezione dell'archivio e divieto di cancellazione file fisici.
-* Rifiuto di percorsi traversali (`../`) e sanitizzazione input.
-* Convalida transazioni di salvataggio e protezione slot occupati.
-* Policy di sicurezza su formati esterni e link salvati.
-
----
-
-## 📦 Struttura del Progetto
-
-```text
-MOD_MANAGER/
-├── assets/
-│   ├── app.js             # Logica applicativa, reattività e routing viste
-│   └── style.css          # Design system dark ad alto contrasto (Impeccable / No AI Slop)
-├── data/
-│   ├── config.example.json# Template di configurazione percorsi
-│   ├── mods.js            # Cache metadati mod scansionate
-│   └── profili.json       # Abbinamenti salvataggi e set di mod
-├── Dockerfile             # Immagine Docker leggera basata su Python 3.12 Alpine
-├── docker-compose.yml     # Configurazione Docker Compose con volumi montati
-├── Makefile               # Pannello di controllo centralizzato con comandi rapidi
-├── server.py              # Server locale con API REST sicure e query SQLite
-├── scan_mods.py           # Scanner modDesc.xml e generatore manifest
-└── test_sicurezza.py      # Suite di 52 test automatizzati
-```
+Tutti i 52 test verificano:
+- Protezione dell'archivio da cancellazioni.
+- Rifiuto di percorsi traversali (`../`).
+- Convalida salvataggi e prevenzione conflitti slot.
+- Sanitizzazione dei metadati e dei file CSV.
 
 ---
 
 ## 📄 Licenza
 
-Rilasciato sotto licenza [MIT](LICENSE). Libero per la community di Farming Simulator 25.
+Distribuito sotto licenza **MIT**. Consulta il file [LICENSE](LICENSE) per i dettagli.
