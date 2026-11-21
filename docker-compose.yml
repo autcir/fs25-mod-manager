@@ -1,0 +1,23 @@
+services:
+  mod-manager:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fs25-mod-manager
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+    volumes:
+      # Dati applicazione (profili, cache, statistiche)
+      - ./data:/app/data
+      # Cartella delle mod di gioco (modifica il percorso host a piacere)
+      - ../mods:/mods
+      # Archivio/backup delle mod
+      - ../BACKUP_MODS:/backup_mods:ro
+      # Database KingMods indicizzato
+      - ../scraper:/scraper:ro
+    environment:
+      - PORT=8025
+      - FS25_MODS_DIR=/mods
+      - FS25_ARCHIVE_DIR=/backup_mods
+      - FS25_KINGMODS_DB=/scraper/kingmods_fs25.db

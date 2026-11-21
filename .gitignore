@@ -1,0 +1,27 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Caching & Local Server Logs
+data/server.log
+data/cache.json
+data/modhub_cache.json
+data/link_salvati/
+
+# Backup & Temporary files
+*.bak
+*.bak-*
+*.old
+*.tmp
+*~
+*.csv
+
+# Test & OS Artifacts
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local backup folders
+mods-bck/

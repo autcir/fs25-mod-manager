@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policymap [
+  <!ELEMENT policymap (policy)*>
+  <!ATTLIST policymap xmlns CDATA #FIXED ''>
+  <!ELEMENT policy EMPTY>
+  <!ATTLIST policy xmlns CDATA #FIXED '' domain NMTOKEN #REQUIRED
+    name NMTOKEN #IMPLIED pattern CDATA #IMPLIED rights NMTOKENS #IMPLIED
+    stealth NMTOKEN #IMPLIED value CDATA #IMPLIED>
+]>
+<!-- Restrictive policy for converting mod icons (files from third parties).
+     scan_mods.py sets MAGICK_CONFIGURE_PATH to this folder. Only PNG, JPEG and DDS are allowed. -->
+<policymap>
+  <policy domain="delegate" rights="none" pattern="*"/>
+  <policy domain="coder" rights="none" pattern="*"/>
+  <policy domain="coder" rights="read|write" pattern="{PNG,JPEG,JPG,DDS}"/>
+  <policy domain="coder" rights="none" pattern="{MVG,MSL,SVG,MSVG,RSVG,TEXT,TXT,LABEL,URL,HTTP,HTTPS,FTP,EPHEMERAL,PS,PDF,EPS,XPS}"/>
+  <policy domain="path" rights="none" pattern="@*"/>
+  <policy domain="module" rights="none" pattern="{MVG,MSL,SVG,TEXT,URL,PS,PDF,XPS}"/>
+  <policy domain="resource" name="memory" value="256MiB"/>
+  <policy domain="resource" name="disk" value="1GiB"/>
+  <policy domain="resource" name="width" value="16KP"/>
+  <policy domain="resource" name="height" value="16KP"/>
+  <policy domain="resource" name="time" value="30"/>
+</policymap>

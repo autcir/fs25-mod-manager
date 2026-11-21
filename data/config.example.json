@@ -1,0 +1,8 @@
+{
+  "active_game_dir": "/home/username/Games/FarmingSimulator25/mods",
+  "wine_game_root": "/home/username/.local/share/Steam/steamapps/compatdata/2300320/pfx/drive_c/users/steamuser/Documents/My Games/FarmingSimulator2025",
+  "game_launcher": "/home/username/Games/FarmingSimulator25/run.sh",
+  "archive_dir": "/home/username/Projects/fs25/mods",
+  "kingmods_db": "/home/username/Projects/fs25/scraper/kingmods_fs25.db",
+  "backup_disco": "/run/media/username/BACKUP_DRIVE"
+}

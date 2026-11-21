@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mod Manager FS25 — Gestione Mod</title>
+  <meta name="description" content="Gestionale locale per le mod di Farming Simulator 25: inventario, catalogo attrezzi e prezzi, dati ufficiali ModHub, duplicati e criticità.">
+  <link rel="stylesheet" href="assets/style.css?v=20261120_07">
+  <meta content="#0d1210" name="theme-color">
+  <meta content="dark" name="color-scheme">
+</head>
+<body class="view-mode-manage density-comfortable">
+  <a class="skip-link" href="#main-content">Salta al contenuto</a>
+  <div class="app">
+
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 31c0-8 6-14 14-14h4v14H10Z" fill="currentColor" opacity=".9"/>
+            <path d="M28 17h5l3 5v9h-8V17Z" fill="currentColor" opacity=".55"/>
+            <circle cx="17" cy="34" r="5" fill="#0d160f" stroke="currentColor" stroke-width="2.5"/>
+            <circle cx="33" cy="34" r="5" fill="#0d160f" stroke="currentColor" stroke-width="2.5"/>
+            <path d="M11 14h8M15 10v8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <h1>MOD MANAGER <span>FS25</span></h1>
+          <p class="brand-sub">Console operativa per le mod di Farming Simulator 25</p>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button class="btn-launcher-top" id="btn-top-launcher" type="button">
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="4"/><path d="M6 12h4m-2-2v4m7-2h.01m3 0h.01"/></svg>
+          Avvia Gioco &amp; Mappe (<span id="top-active-count">31</span> attive)
+        </button>
+        <div class="meta-pill" title="Versione del gioco rilevata">
+          <span class="meta-dot"></span>
+          <span id="game-version">FS25</span>
+        </div>
+        <div class="meta-pill" title="Ultima scansione">
+          <span class="meta-label">Aggiornato</span>
+          <strong id="generated-at">—</strong>
+        </div>
+        <button class="btn btn-ghost" id="btn-export" title="Scarica l'inventario in CSV" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          Esporta CSV
+        </button>
+      </div>
+    </header>
+
+    <nav class="viewtabs" aria-label="Viste">
+      <button class="viewtab is-active" data-view="manage" id="viewtab-manage" aria-controls="view-manage" aria-current="page" type="button">
+        <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16m-7 6h7"/></svg>
+        Gestione Mod (Nel Gioco ⇄ Backup)
+        <span class="tab-count" id="tab-count-manage">0</span>
+      </button>
+      <button class="viewtab" data-view="inventory" aria-controls="view-inventory" type="button">Tutto l'Inventario <span class="tab-count" id="tab-count-inventory"></span></button>
+      <button class="viewtab" data-view="duplicates" aria-controls="view-duplicates" type="button">Duplicati <span class="tab-count" id="tab-count-duplicates"></span></button>
+      <button class="viewtab" data-view="health" aria-controls="view-health" type="button">Criticità <span class="tab-count" id="tab-count-health"></span></button>
+      <button class="viewtab" data-view="categories" aria-controls="view-categories" type="button">Categorie <span class="tab-count" id="tab-count-categories"></span></button>
+      <button class="viewtab" data-view="catalog" aria-controls="view-catalog" type="button">Attrezzi &amp; Prezzi <span class="tab-count" id="tab-count-catalog"></span></button>
+      <button class="viewtab" data-view="profiles" id="viewtab-profiles" aria-controls="view-profiles" type="button">
+        <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 6v15l7-4 8 4 7-4V2l-7 4-8-4-7 4zm7-4v15m8-11v15"/></svg>
+        Partite &amp; Carriera
+        <span class="tab-count" id="tab-count-profiles"></span>
+      </button>
+      <button class="viewtab" data-view="recommended" id="viewtab-recommended" aria-controls="view-recommended" type="button">Consigliate (22k+) <span class="tab-count" id="tab-count-rec">Top</span></button>
+      <div class="viewtab-spacer"></div>
+      <span class="result-count" id="result-count"></span>
+    </nav>
+
+    <div class="workspace">
+      <aside class="sidebar" id="sidebar">
+        <div class="side-block">
+          <h3>Provenienza</h3>
+          <div class="filter-list" id="filter-source"></div>
+        </div>
+
+        <div class="side-block">
+          <h3>Tipo</h3>
+          <div class="filter-list" id="filter-type"></div>
+        </div>
+
+        <div class="side-block">
+          <h3>Categoria <span class="side-hint">clic per filtrare</span></h3>
+          <div class="filter-list filter-scroll" id="filter-category"></div>
+        </div>
+
+        <div class="side-block side-note">
+          <h3>Aggiorna Scansione</h3>
+          <p>Dopo aver aggiunto zip in archivio, esegui:</p>
+          <code class="cmd">make scan-fast</code>
+          <p class="muted">La scansione è solo lettura e non tocca alcun file.</p>
+        </div>
+      </aside>
+
+      <main class="content" id="main-content" tabindex="-1">
+        <!-- GESTIONE MOD A DUE COLONNE (CONSOLE SEMPLIFICATA) -->
+        <section class="view view-manage is-active" id="view-manage">
+          <div class="section-header-row" style="margin-bottom:14px;">
+            <div class="section-header-titles">
+              <h2>
+                <svg class="ui-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16m-7 6h7"/></svg>
+                Gestione Mod: Nel Gioco ⇄ In Riserva
+              </h2>
+              <p>Sposta le mod tra il gioco e la riserva con un click. Nessun file fisico viene cancellato (si gestiscono solo i collegamenti simbolici al gioco). Salva sempre a gioco chiuso.</p>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+              <button class="btn btn-ghost" id="btn-quick-italy" title="Seleziona le 31 mod italiane">
+                <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20M2 12h20"/></svg>
+                Preset Italia (31)
+              </button>
+              <button class="btn-launch-primary" id="btn-manage-apply">
+                <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                Salva &amp; Applica a FS25 (<span id="manage-top-active-count">0</span>)
+              </button>
+            </div>
+          </div>
+
+          <div class="manage-console">
+            <!-- COLONNA 1: NEL GIOCO -->
+            <div class="manage-column col-game">
+              <div class="manage-col-header">
+                <div class="manage-col-title">
+                  <svg class="ui-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="4"/><path d="M6 12h4m-2-2v4m7-2h.01m3 0h.01"/></svg>
+                  <div>
+                    <h3>NEL GIOCO (ATTIVE)</h3>
+                    <span class="manage-col-sub" id="manage-game-dir-label">Cartella: ~/Games/FarmingSimulator25/mods</span>
+                  </div>
+                </div>
+                <span class="badge-tag" id="badge-game-count" style="font-size:12px; font-weight:700; color:var(--green); background:rgba(74,222,128,0.12); padding:3px 8px; border-radius:6px;">0 attive</span>
+              </div>
+              <div class="manage-search-wrap">
+                <input type="search" id="search-manage-game" class="form-control-dark" placeholder="Cerca tra le mod attive nel gioco...">
+              </div>
+              <div class="manage-card-list" id="list-manage-game">
+                <!-- popolato da app.js -->
+              </div>
+            </div>
+
+            <!-- COLONNA 2: IN RISERVA / BACKUP -->
+            <div class="manage-column col-backup">
+              <div class="manage-col-header">
+                <div class="manage-col-title">
+                  <svg class="ui-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                  <div>
+                    <h3>IN RISERVA (BACKUP &amp; ARCHIVIO)</h3>
+                    <span class="manage-col-sub">Magazzino: BACKUP_MODS, mods-bck e archivio</span>
+                  </div>
+                </div>
+                <span class="badge-tag" id="badge-backup-count" style="font-size:12px; font-weight:700; color:var(--amber); background:rgba(251,191,36,0.12); padding:3px 8px; border-radius:6px;">0 in riserva</span>
+              </div>
+              <div class="manage-search-wrap">
+                <input type="search" id="search-manage-backup" class="form-control-dark" placeholder="Cerca tra le mod nei backup...">
+              </div>
+              <div class="manage-card-list" id="list-manage-backup">
+                <!-- popolato da app.js -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- INVENTARIO COMPLETO (TECNICO) -->
+        <section class="view view-inventory" id="view-inventory">
+          <section class="stats" id="stats" aria-label="Statistiche"></section>
+
+          <div class="toolbar">
+            <div class="toolbar-left">
+              <input type="search" id="search" class="form-control-dark" placeholder="Cerca mod nell'inventario..." autocomplete="off" spellcheck="false" style="width:230px; padding:6px 12px;">
+              <button class="chip is-active" data-quick="all">Tutte</button>
+              <button class="chip" data-quick="active">Solo attive</button>
+              <button class="chip" data-quick="backup">Tutto l'archivio</button>
+              <button class="chip" data-quick="bck">Solo mods-bck</button>
+              <button class="chip" data-quick="copies">Copie di sicurezza</button>
+              <button class="chip" data-quick="issues">Con avvisi</button>
+            </div>
+            <div class="toolbar-right">
+              <label class="select-wrap">
+                <span>Ordina</span>
+                <select id="sort">
+                  <option value="relevance">Rilevanza</option>
+                  <option value="name">Nome A→Z</option>
+                  <option value="size">Dimensione</option>
+                  <option value="date">Più recenti</option>
+                  <option value="category">Categoria</option>
+                  <option value="version">Versione</option>
+                </select>
+              </label>
+              <div class="view-toggle" role="group" aria-label="Densità">
+                <button class="is-active" data-density="comfortable" title="Righe comode">Comoda</button>
+                <button data-density="compact" title="Righe compatte">Compatta</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- BARRA SELEZIONE RAPIDA MOD ATTIVE FS25 -->
+          <div class="banner-quick-sync">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="banner-quick-sync-title"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> SELEZIONE MOD ATTIVE NEL GIOCO:</span>
+              <span class="banner-quick-sync-sub">Spunta le caselle verdi nella tabella per attivarle/disattivarle in FS25.</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <button class="btn btn-ghost" id="btn-inv-italy"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20M2 12h20"/></svg> Spunta 31 Mod Italiane</button>
+              <button class="btn-sync-apply" id="btn-inv-apply"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Sincronizza con FS25 (<span id="inv-active-count">31</span>)</button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="mod-table">
+              <thead>
+                <tr>
+                  <th style="width:65px; text-align:center;">Nel Gioco</th>
+                  <th class="col-mod">Mod</th>
+                  <th class="col-what">Cosa fa</th>
+                  <th class="col-cat">Categoria</th>
+                  <th class="col-type">Tipo</th>
+                  <th class="col-ver">Versione</th>
+                  <th class="col-author">Autore</th>
+                  <th class="col-source">Stato</th>
+                  <th class="col-size">Dimensione</th>
+                  <th class="col-date">Aggiornata</th>
+                  <th class="col-flags" title="Criticità">!</th>
+                </tr>
+              </thead>
+              <tbody id="mod-rows"></tbody>
+            </table>
+            <div class="empty-state" id="empty-inventory" hidden>
+              <div class="empty-icon">🔎</div>
+              <h3>Nessuna mod trovata</h3>
+              <p>Prova a cambiare ricerca o filtri.</p>
+              <button class="btn btn-primary" id="btn-reset-filters">Azzera filtri</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- DUPLICATI -->
+        <section class="view view-duplicates" id="view-duplicates">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">Confronto cartelle</span>
+              <h2>Duplicati, copie di sicurezza e conflitti</h2>
+              <p>Un file identico in <code>mods/</code> e in <code>15_COPIE_MOD_ATTIVE/</code> è una copia di sicurezza voluta. Due versioni diverse della stessa mod sono invece un conflitto da risolvere.</p>
+            </div>
+          </div>
+          <div class="mini-stats" id="duplicate-stats"></div>
+          <div class="subview-tabs" id="duplicate-tabs">
+            <button class="is-active" data-duptab="exact">Copie esatte</button>
+            <button data-duptab="same">Stessa mod in più punti</button>
+            <button data-duptab="conflicts">Conflitti versione</button>
+          </div>
+          <div id="duplicate-content"></div>
+        </section>
+
+        <!-- CRITICITÀ -->
+        <section class="view view-health" id="view-health">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">Qualità dell'archivio</span>
+              <h2>Criticità e pulizia consigliata</h2>
+              <p>Controlli automatici su ZIP, modDesc, icone, descrizioni, versioni, doppioni e file sospetti. Nessun file viene toccato: qui trovi solo la diagnosi.</p>
+            </div>
+          </div>
+          <div class="health-summary" id="health-summary"></div>
+          <div class="health-layout">
+            <div class="health-issues" id="health-issues"></div>
+            <aside class="cleanup-box" id="cleanup-box"></aside>
+          </div>
+        </section>
+
+        <!-- CATEGORIE -->
+        <section class="view view-categories" id="view-categories">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">Mappa dell'archivio</span>
+              <h2>Le tue categorie, a colpo d'occhio</h2>
+              <p>Ogni scheda mostra quante mod contiene, quanto spazio occupa e alcuni esempi. Clicca per aprire l'inventario già filtrato.</p>
+            </div>
+          </div>
+          <div class="category-grid" id="category-grid"></div>
+        </section>
+
+        <!-- CATALOGO ATTREZZI E PREZZI -->
+        <section class="view view-catalog" id="view-catalog">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">Catalogo dello shop</span>
+              <h2>Attrezzi, veicoli e prezzi</h2>
+              <p>Tutti gli oggetti acquistabili dichiarati nei <code>modDesc.xml</code>: prezzo, potenza richiesta, larghezza di lavoro, velocità e costo giornaliero. Clicca una riga per aprire la mod completa.</p>
+            </div>
+          </div>
+
+          <div class="mini-stats" id="catalog-stats"></div>
+          <p class="catalog-note">Il ModHub ufficiale non pubblica il numero di download per singola mod: al suo posto trovi la valutazione e i voti ufficiali. Prezzi e specifiche arrivano dai file <code>modDesc.xml</code> delle mod installate; le varianti con stesso nome e prezzo sono raggruppate (×N).</p>
+
+          <div class="toolbar">
+            <div class="toolbar-left">
+              <button class="chip is-active" data-catalog-type="all">Tutti</button>
+              <button class="chip" data-catalog-type="attrezzo">Attrezzi</button>
+              <button class="chip" data-catalog-type="veicolo">Veicoli</button>
+              <button class="chip" data-catalog-type="piazzabile">Piazzabili</button>
+            </div>
+            <div class="toolbar-right">
+              <label class="select-wrap">
+                <span>Ordina</span>
+                <select id="catalog-sort">
+                  <option value="type">Tipo (attrezzi prima)</option>
+                  <option value="price-desc">Prezzo più alto</option>
+                  <option value="price-asc">Prezzo più basso</option>
+                  <option value="name">Nome A→Z</option>
+                  <option value="power-desc">Potenza richiesta</option>
+                  <option value="votes-desc">Voti ModHub</option>
+                  <option value="mod">Mod A→Z</option>
+                </select>
+              </label>
+              <button class="btn btn-ghost catalog-export" id="btn-export-catalog" title="Scarica gli oggetti filtrati in CSV">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+                Esporta catalogo
+              </button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="catalog-table">
+              <thead>
+                <tr>
+                  <th class="col-item">Oggetto</th>
+                  <th class="col-mod-name">Mod</th>
+                  <th class="col-shop-cat">Categoria shop</th>
+                  <th class="col-price">Prezzo</th>
+                  <th class="col-power">Potenza</th>
+                  <th class="col-width">Larghezza</th>
+                  <th class="col-speed">Velocità</th>
+                  <th class="col-upkeep">Upkeep</th>
+                  <th class="col-mh">ModHub</th>
+                </tr>
+              </thead>
+              <tbody id="catalog-rows"></tbody>
+            </table>
+            <div class="empty-state" id="empty-catalog" hidden>
+              <div class="empty-icon">🚜</div>
+              <h3>Nessun oggetto trovato</h3>
+              <p>Prova a cambiare ricerca, tipo o ordinamento.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- MAPPE E ATTIVAZIONE MOD -->
+        <section class="view view-profiles" id="view-profiles">
+          <div class="section-header-row">
+            <div class="section-header-titles">
+              <h2>
+                <svg class="ui-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 6v15l7-4 8 4 7-4V2l-7 4-8-4-7 4zm7-4v15m8-11v15"/></svg>
+                Mappe e mod attive in Farming Simulator 25
+              </h2>
+              <p>Spunta le mod desiderate e clicca <strong>Applica mod a FS25</strong>: nella cartella del gioco vengono creati i collegamenti simbolici alle mod scelte. I file fisici originali rimangono protetti nell'archivio. Esegui sempre a gioco chiuso.</p>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
+              <button class="btn-launch-primary" id="btn-apply-mods">
+                <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                Applica mod a FS25 (<span id="profile-active-counter">31</span> attive)
+              </button>
+              <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                <label for="link-salvati" style="font-size:12px; color:var(--text-soft);">Link di prima:</label>
+                <select id="link-salvati" class="form-control-dark" style="max-width:260px; padding:6px 10px; font-size:12px;">
+                  <option value="">Nessun elenco salvato</option>
+                </select>
+                <button class="chip" id="btn-rimetti-link" type="button" style="cursor:pointer;" disabled>
+                  <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                  Rimetti i link di prima
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="toolbar-panel">
+            <div class="toolbar-left" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+              <span style="font-weight:700; color:var(--muted); font-size:12px; letter-spacing:.04em;">PRESET RAPIDI:</span>
+              <button class="chip is-active" id="btn-preset-italy" style="cursor:pointer;">Italia Mediterranea (31 mod)</button>
+              <button class="chip" id="btn-preset-all" style="cursor:pointer;">Tutte le mod</button>
+              <button class="chip" id="btn-preset-clear" style="cursor:pointer;">Deseleziona tutte</button>
+            </div>
+            <div class="toolbar-right" style="display:flex; align-items:center; gap:12px;">
+              <input type="search" id="profile-search" class="form-control-dark" placeholder="Cerca tra le mod da attivare..." style="width:230px;">
+              <span id="profile-sync-status" style="font-size:12px; color:var(--green); font-weight:600;">Controllo il server…</span>
+            </div>
+          </div>
+
+          <!-- PARTITE E SET DI MOD (stessi set di run.sh) -->
+          <div class="career-architect-box" id="partite-box">
+            <h3 style="margin:0 0 6px 0; color:#fff; font-size:16px; display:flex; align-items:center; gap:8px;">
+              <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              Mod di una partita
+            </h3>
+            <p style="margin:0 0 12px 0; font-size:13px; color:var(--text-soft);">
+              Scegli un salvataggio e il set di mod con cui lo giochi (letti direttamente da <code>run.sh</code>).
+              <strong>Controlla</strong> verifica lo stato senza modificare nulla; <strong>Attiva</strong> inserisce nel set i collegamenti simbolici necessari.
+              Le altre mod rimangono nell'archivio e nessun file fisico viene mai rimosso. Esegui a gioco chiuso.
+            </p>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px; align-items:end;">
+              <div>
+                <label for="partita-slot" class="form-label">SALVATAGGIO</label>
+                <select id="partita-slot" class="form-control-dark" style="width:100%;"><option value="">Server spento</option></select>
+              </div>
+              <div>
+                <label for="partita-set" class="form-label">SET DI MOD (run.sh)</label>
+                <select id="partita-set" class="form-control-dark" style="width:100%;"></select>
+              </div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="chip" id="btn-partita-controlla" type="button" style="cursor:pointer;">
+                  <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                  Controlla
+                </button>
+                <button class="chip" id="btn-partita-salva" type="button" style="cursor:pointer;">
+                  <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+                  Ricorda abbinamento
+                </button>
+              </div>
+            </div>
+            <div id="partita-esito" style="margin-top:14px; font-size:13px; color:var(--text-soft);"></div>
+            <div id="backup-riga" style="margin-top:14px; padding-top:12px; border-top:1px solid var(--line-soft); display:flex; gap:12px; align-items:center; flex-wrap:wrap; font-size:13px;">
+              <span id="backup-stato" style="color:var(--text-soft);">Copia di sicurezza: controllo…</span>
+              <button class="chip" id="btn-backup" type="button" style="cursor:pointer;" disabled>
+                <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Copia tutte le mod su EROSBACKUP
+              </button>
+            </div>
+          </div>
+
+          <!-- CREATORE SALVATAGGIO AUTOMATICO & GAME LAUNCHER -->
+          <div class="career-architect-box">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
+              <div>
+                <h3 style="margin:0 0 4px 0; color:#fff; font-size:16px; display:flex; align-items:center; gap:8px;">
+                  <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="4"/><path d="M6 12h4m-2-2v4m7-2h.01m3 0h.01"/></svg>
+                  <span>Partita nuova e avvio di FS25</span>
+                </h3>
+                <p style="margin:0; font-size:13px; color:var(--text-soft); max-width:680px;">Prepara una partita nuova sulla mappa scelta con fondi, prestito, regole e mod configurate, poi avvia il gioco. Se lo slot è già occupato, il salvataggio precedente viene spostato in <code>BACKUP_SAVEGAMES</code> previa conferma esplicita.</p>
+              </div>
+              <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <label class="checkbox-card">
+                  <input type="checkbox" id="chk-launch-obs" checked>
+                  <span>Avvia anche OBS Studio</span>
+                </label>
+                <button id="btn-create-and-launch" class="btn-launch-primary">
+                  <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  Prepara la partita e avvia FS25
+                </button>
+              </div>
+            </div>
+
+            <!-- PRESET ECONOMICI RAPIDI -->
+            <div style="margin-top:14px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <span style="font-size:12px; font-weight:700; color:var(--muted); letter-spacing:.04em;">PRESET PARTITA:</span>
+              <button class="chip is-active" id="btn-eco-survival" style="cursor:pointer;">Survival Hardcore (0€)</button>
+              <button class="chip" id="btn-eco-standard" style="cursor:pointer;">Azienda Standard (100k€)</button>
+              <button class="chip" id="btn-eco-sandbox" style="cursor:pointer;">Sandbox Libero (1M€)</button>
+            </div>
+            
+            <div class="form-grid" style="margin-top:14px;">
+              <div>
+                <label for="game-set" class="form-label">SET DI MOD (run.sh)</label>
+                <select id="game-set" class="form-control-dark" style="width:100%;"><option value="">mods</option></select>
+              </div>
+              <div>
+                <label for="game-map" class="form-label">MAPPA</label>
+                <select id="game-map" class="form-control-dark" style="width:100%;">
+                  <option value="FS25_Mediterranean_Italy.zip">Italia Mediterranea</option>
+                </select>
+              </div>
+              <div>
+                <label for="game-slot" class="form-label">SLOT SALVATAGGIO</label>
+                <select id="game-slot" class="form-control-dark" style="width:100%;">
+                  <option value="1">Slot 1</option>
+                  <option value="2">Slot 2</option>
+                  <option value="3">Slot 3</option>
+                  <option value="4">Slot 4</option>
+                  <option value="5">Slot 5</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="game-name" class="form-label">NOME SALVATAGGIO</label>
+                <input type="text" id="game-name" class="form-control-dark" value="Survival Italia Mediterranea - Giorno 1" style="width:100%;">
+              </div>
+
+              <div>
+                <label for="custom-money" class="form-label">FONDI INIZIALI (€)</label>
+                <input type="number" id="custom-money" class="form-control-dark" value="0" min="0" step="1000" style="width:100%;">
+              </div>
+
+              <div>
+                <label for="game-diff" class="form-label">DIFFICOLTÀ ECONOMICA</label>
+                <select id="game-diff" class="form-control-dark" style="width:100%;">
+                  <option value="HARD">Difficile (Hardcore Survival)</option>
+                  <option value="NORMAL">Normale</option>
+                  <option value="EASY">Facile</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- TENDINA REGOLE AVANZATE & REALISMO -->
+            <details class="details-telemetry">
+              <summary>
+                <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                Personalizza Regole Avanzate, Mutuo &amp; Realismo Terreno
+              </summary>
+              <div class="form-grid" style="margin-top:14px;">
+                <div>
+                  <label for="custom-loan" class="form-label">DEBITO / MUTUO INIZIALE (€)</label>
+                  <input type="number" id="custom-loan" class="form-control-dark" value="0" min="0" step="5000" style="width:100%;">
+                </div>
+                <div>
+                  <label for="custom-days" class="form-label">GIORNI PER MESE</label>
+                  <input type="number" id="custom-days" class="form-control-dark" value="1" min="1" max="28" style="width:100%;">
+                </div>
+                <div>
+                  <label for="custom-timescale" class="form-label">VELOCITÀ DEL TEMPO</label>
+                  <select id="custom-timescale" class="form-control-dark" style="width:100%;">
+                    <option value="5.0">5x (Standard)</option>
+                    <option value="1.0">1x (Tempo Reale)</option>
+                    <option value="15.0">15x</option>
+                    <option value="30.0">30x</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="margin-top:14px; display:flex; flex-wrap:wrap; gap:16px;">
+                <label class="checkbox-card">
+                  <input type="checkbox" id="chk-destr" checked>
+                  <span>Distruzione Colture</span>
+                </label>
+                <label class="checkbox-card">
+                  <input type="checkbox" id="chk-plow" checked>
+                  <span>Aratura Periodica</span>
+                </label>
+                <label class="checkbox-card">
+                  <input type="checkbox" id="chk-stones" checked>
+                  <span>Pietre nei Campi</span>
+                </label>
+                <label class="checkbox-card">
+                  <input type="checkbox" id="chk-weeds" checked>
+                  <span>Erbacce Attive</span>
+                </label>
+                <label class="checkbox-card">
+                  <input type="checkbox" id="chk-lime" checked>
+                  <span>Calce Necessaria</span>
+                </label>
+                <label class="checkbox-card">
+                  <input type="checkbox" id="chk-snow" checked>
+                  <span>Neve &amp; Stagioni</span>
+                </label>
+              </div>
+            </details>
+          </div>
+
+          <div class="table-wrap" style="margin-top:16px;">
+            <table class="mod-table">
+              <thead>
+                <tr>
+                  <th style="width:70px; text-align:center;">Attiva</th>
+                  <th class="col-mod">Mod</th>
+                  <th class="col-what">Cosa fa / Consiglio</th>
+                  <th class="col-cat">Categoria</th>
+                  <th class="col-type">Tipo</th>
+                  <th class="col-size">Dimensione</th>
+                  <th class="col-source">File ZIP</th>
+                </tr>
+              </thead>
+              <tbody id="profile-rows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- MOD CONSIGLIATE & SCOPERTA AVANZATA (KINGMODS & MODHUB) -->
+        <section class="view view-recommended" id="view-recommended">
+          <div class="rec-header">
+            <div class="section-header-titles">
+              <h2>
+                <svg class="ui-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                Mod Consigliate &amp; Esplorazione KingMods
+              </h2>
+              <p>Database locale sincronizzato: <strong>22.645 mod FS25</strong> con statistiche di download, voti community e verifica immediata con il tuo archivio e con le mod attive nel gioco.</p>
+            </div>
+            <div class="rec-db-badge" title="Database locale indicizzato in scraper/kingmods_fs25.db">
+              <span class="rec-db-indicator"></span>
+              <span>22.645 mod indicizzate</span>
+            </div>
+          </div>
+
+          <!-- BARRA DEI PRESET TEMATICI -->
+          <div class="rec-presets-bar" id="rec-presets-bar" role="tablist" aria-label="Collezioni tematiche">
+            <button type="button" class="rec-preset-btn is-active" data-preset="italy">
+              🇮🇹 Made in Italy &amp; Mediterraneo
+            </button>
+            <button type="button" class="rec-preset-btn" data-preset="scripts">
+              ⚙️ Script &amp; Realismo Indispensabili
+            </button>
+            <button type="button" class="rec-preset-btn" data-preset="top">
+              🏆 Top Download FS25
+            </button>
+            <button type="button" class="rec-preset-btn" data-preset="tractors">
+              🚜 Trattori Iconici
+            </button>
+            <button type="button" class="rec-preset-btn" data-preset="factories">
+              🏭 Fabbriche &amp; Produzioni
+            </button>
+            <button type="button" class="rec-preset-btn" data-preset="maps">
+              🗺️ Mappe Europee
+            </button>
+            <button type="button" class="rec-preset-btn" data-preset="all">
+              🌐 Tutte le Mod (22.645)
+            </button>
+          </div>
+
+          <!-- TOOLBAR DI RICERCA, FILTRI E ORDINAMENTO -->
+          <div class="rec-toolbar">
+            <div class="rec-search-box">
+              <svg class="ui-icon rec-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="search" id="rec-search-input" placeholder="Cerca tra 22.000+ mod (es. Fiatagri, Courseplay, Laverda, Alpego, Baler)..." autocomplete="off">
+              <button type="button" id="rec-search-clear" class="rec-clear-btn" title="Cancella ricerca" hidden>✕</button>
+            </div>
+
+            <div class="rec-filters-group">
+              <div class="rec-select-wrap">
+                <label for="rec-category-select">Categoria:</label>
+                <select id="rec-category-select">
+                  <option value="all">Tutte le categorie</option>
+                  <!-- Popolato dinamicamente da /api/external_categories -->
+                </select>
+              </div>
+
+              <div class="rec-select-wrap">
+                <label for="rec-sort-select">Ordina:</label>
+                <select id="rec-sort-select">
+                  <option value="downloads">Più scaricati (Download ↓)</option>
+                  <option value="rating">Più votati (Community ★)</option>
+                  <option value="name">Nome (A - Z)</option>
+                  <option value="recent">Ultimi pubblicati</option>
+                </select>
+              </div>
+
+              <div class="rec-select-wrap">
+                <label for="rec-status-filter">Nel tuo FS25:</label>
+                <select id="rec-status-filter">
+                  <option value="all">Tutte le mod</option>
+                  <option value="new">Solo Nuove (non in archivio)</option>
+                  <option value="owned">Solo In Archivio (Trovate)</option>
+                  <option value="active">Solo Attive nel Gioco</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIEPILOGO RISULTATI E INFO PRESET -->
+          <div class="rec-status-bar" id="rec-status-bar">
+            <div class="rec-status-info">
+              <strong id="rec-count-label">Caricamento mod consigliate...</strong>
+              <span id="rec-preset-desc" class="rec-preset-desc"></span>
+            </div>
+            <div class="rec-status-actions">
+              <button type="button" class="btn btn-ghost" id="rec-reset-filters" style="font-size:12px; padding:5px 10px;" hidden>
+                Azzera filtri
+              </button>
+            </div>
+          </div>
+
+          <!-- GRIGLIA MOD -->
+          <div id="rec-cards-grid" class="rec-cards-grid">
+            <!-- Idratazione dinamica via app.js -->
+          </div>
+
+          <!-- PAGINAZIONE / CARICA ALTRI -->
+          <div class="rec-pagination" id="rec-pagination" hidden>
+            <button type="button" class="btn btn-primary" id="rec-load-more" style="min-width:240px; padding:11px 24px; font-size:13px; font-weight:600;">
+              Carica altre mod
+            </button>
+            <div class="rec-pagination-info" id="rec-pagination-info"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <footer class="footer">
+      <div>
+        <strong>MOD MANAGER FS25</strong> · dashboard statica generata da <code>scan_mods.py</code>
+      </div>
+      <div class="footer-right">
+        <span id="footer-paths"></span>
+        <span class="footer-dot"></span>
+        <span>Nessuna mod viene modificata</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Drawer dettaglio nativo -->
+  <dialog aria-labelledby="drawer-title" class="drawer" id="drawer">
+    <div class="drawer-head">
+      <span class="drawer-kicker">Scheda mod</span>
+      <button aria-label="Chiudi" autofocus="" class="btn btn-ghost icon-btn" id="drawer-close" type="button">✕</button>
+    </div>
+    <div class="drawer-body" id="drawer-body"></div>
+  </dialog>
+
+  <div aria-atomic="true" aria-live="polite" class="toast" id="toast" role="status"></div>
+
+  <script src="data/mods.js?v=20261105_05"></script>
+  <script src="assets/app.js?v=20261120_07"></script>
+</body>
+</html>
